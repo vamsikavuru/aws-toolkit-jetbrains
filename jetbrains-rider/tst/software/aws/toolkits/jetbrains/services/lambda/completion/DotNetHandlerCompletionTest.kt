@@ -6,6 +6,8 @@ package software.aws.toolkits.jetbrains.services.lambda.completion
 import com.intellij.openapi.util.IconLoader
 import com.jetbrains.rdclient.icons.toIdeaIcon
 import com.jetbrains.rider.model.IconModel
+import com.jetbrains.rider.model.lambdaModel
+import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.test.annotations.TestEnvironment
 import com.jetbrains.rider.test.base.BaseTestWithSolution
 import org.assertj.core.api.Assertions.assertThat
