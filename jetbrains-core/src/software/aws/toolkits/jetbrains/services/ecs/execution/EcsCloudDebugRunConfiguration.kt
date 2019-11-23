@@ -319,7 +319,7 @@ class EcsCloudDebugRunConfiguration(project: Project, private val configFactory:
         } else {
             val selectedPorts = mutableListOf<Int>()
 
-            for (i in 0..requiredNumOfPorts) {
+            for (i in 0 until requiredNumOfPorts) {
                 var port = DEFAULT_REMOTE_DEBUG_PORT
                 while (usedRemoteDebugPorts.contains(port)) {
                     port++
