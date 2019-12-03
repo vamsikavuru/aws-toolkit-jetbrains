@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
-import com.intellij.ui.AnActionButton
 import software.aws.toolkits.core.telemetry.TelemetryNamespace
 import software.aws.toolkits.jetbrains.services.telemetry.TelemetryService
 import javax.swing.Icon
@@ -63,9 +62,14 @@ abstract class ComboBoxActionWrapper : TelemetryNamespace, ComboBoxAction() {
     open fun doActionPerformed(e: AnActionEvent) = super.actionPerformed(e)
 }
 
-abstract class ToogleActionWrapper(text: String? = null, description: String? = null, icon: Icon? = null) :
+abstract class ToggleActionWrapper(text: String? = null, description: String? = null, icon: Icon? = null) :
     TelemetryNamespace,
     ToggleAction(text, description, icon) {
+
+    init {
+        // Disable mnemonic check to avoid filtering '_'
+        this.templatePresentation.setText(text, false)
+    }
 
     // this will be repeatedly called by the IDE, so we likely do not want telemetry on this,
     // but keeping this to maintain API consistency
@@ -105,4 +109,5 @@ abstract class ActionButtonWrapper(text: String? = null, description: String? = 
     override fun updateButton(e: AnActionEvent) {}
 
     abstract fun doActionPerformed(e: AnActionEvent)
+}
 }
