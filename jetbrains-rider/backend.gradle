@@ -70,11 +70,17 @@ task buildReSharperPlugin {
         }
     }
 
-    outputs.files(fileTree(file("${resharperPluginPath.absolutePath}/src")).matching {
-        include "**/bin/Debug/**/AWS*.dll"
-        include "**/bin/Debug/**/AWS*.pdb"
-    }.collect())
+    outputs.files({
+        fileTree(file("${resharperPluginPath.absolutePath}/src")).matching {
+            include "**/bin/Debug/**/AWS*.dll"
+            include "**/bin/Debug/**/AWS*.pdb"
+            include "**/bin/Debug/**/AWS.DebuggerTools.exe"
+            include "**/bin/Debug/**/AWS.DebuggerTools.runtimeconfig.json"
+        }.collect()
+    })
 }
+
+project.tasks.clean.dependsOn(project.tasks.cleanBuildReSharperPlugin)
 
 private File getReSharperSdkPath() {
     def sdkPath = intellij.ideaDependency.classes

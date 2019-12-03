@@ -48,8 +48,9 @@ class MockProjectAccountSettingsManager : ProjectAccountSettingsManager {
     }
 
     companion object {
+        val MOCK_CREDENTIALS_NAME = "MockCredentials"
         private val DUMMY_PROVIDER = createDummyProvider(
-            "MockCredentials",
+            MOCK_CREDENTIALS_NAME,
             AwsBasicCredentials.create("Foo", "Bar")
         )
 
@@ -71,12 +72,15 @@ class MockProjectAccountSettingsManager : ProjectAccountSettingsManager {
 fun <T> runUnderRealCredentials(project: Project, block: () -> T): T {
     val credentials = DefaultCredentialsProvider.create().resolveCredentials()
     val manager = MockProjectAccountSettingsManager.getInstance(project)
+    val credentialsManager = MockCredentialsManager.getInstance()
     val oldActive = manager.activeCredentialProvider
     try {
         println("Running using real credentials")
         manager.changeCredentialProvider(createDummyProvider("RealCreds", credentials))
+        credentialsManager.addCredentials(oldActive.id, credentials)
         return block.invoke()
     } finally {
+        credentialsManager.reset()
         manager.changeCredentialProvider(oldActive)
     }
 }

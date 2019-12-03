@@ -11,7 +11,6 @@ import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.MutableCollectionComboBoxModel
-import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ExceptionUtil
 import org.jetbrains.annotations.TestOnly
 import software.aws.toolkits.core.credentials.ToolkitCredentialsProvider
@@ -31,14 +30,19 @@ import javax.swing.JList
 
 private typealias Selector<T> = Either<Any?, (T) -> Boolean>
 
+typealias AwsConnection = Pair<AwsRegion, ToolkitCredentialsProvider>
+typealias LazyAwsConnectionEvaluator = () -> AwsConnection
+
 @Suppress("UNCHECKED_CAST")
 class ResourceSelector<T> private constructor(
     private val project: Project,
     private val resourceType: () -> Resource<out Collection<T>>?,
-    customRenderer: ((T, SimpleColoredComponent) -> SimpleColoredComponent)?,
+    comboBoxModel: MutableCollectionComboBoxModel<T>,
+    customRenderer: ColoredListCellRenderer<T>?,
     loadOnCreate: Boolean,
-    private val awsConnection: () -> Pair<AwsRegion, ToolkitCredentialsProvider>
-) : ComboBox<T>(MutableCollectionComboBoxModel<T>()) {
+    private val sortOnLoad: Boolean,
+    private val awsConnection: LazyAwsConnectionEvaluator
+) : ComboBox<T>(comboBoxModel) {
 
     private val resourceCache = AwsResourceCache.getInstance(project)
     @Volatile
@@ -50,21 +54,7 @@ class ResourceSelector<T> private constructor(
 
     init {
         customRenderer?.let {
-            setRenderer(
-                object : ColoredListCellRenderer<T>() {
-                    override fun customizeCellRenderer(
-                        list: JList<out T>,
-                        value: T?,
-                        index: Int,
-                        selected: Boolean,
-                        hasFocus: Boolean
-                    ) {
-                        value?.let {
-                            customRenderer.invoke(value, this)
-                        }
-                    }
-                }
-            )
+            setRenderer(customRenderer)
         }
 
         if (loadOnCreate) {
@@ -162,7 +152,11 @@ class ResourceSelector<T> private constructor(
         runInEdt(ModalityState.any()) {
             setEditable(false)
 
-            model.replaceAll(value.sortedBy { it.toString().toLowerCase() })
+            if (sortOnLoad) {
+                model.replaceAll(value.sortedBy { it.toString().toLowerCase() })
+            } else {
+                model.replaceAll(value.toList())
+            }
             loadingStatus = Status.LOADED
 
             super.setEnabled(shouldBeEnabled)
@@ -183,7 +177,10 @@ class ResourceSelector<T> private constructor(
             super.setSelectedItem(message)
             notifyError(message, ExceptionUtil.getThrowableText(error), project)
             val validationInfo = ValidationInfo(error.message ?: message, this)
-            ComponentValidator.createPopupBuilder(validationInfo, null).createPopup().showUnderneathOf(this)
+            ComponentValidator.createPopupBuilder(validationInfo, null)
+                .setCancelOnClickOutside(true)
+                .createPopup()
+                .showUnderneathOf(this)
         }
     }
 
@@ -203,33 +200,68 @@ class ResourceSelector<T> private constructor(
         private val LOG = getLogger<ResourceSelector<*>>()
         @JvmStatic
         fun builder(project: Project) = object : ResourceBuilder {
-            override fun <T> resource(resource: () -> Resource<out Collection<T>>): ResourceBuilderOptions<T> = ResourceBuilderOptions(project, resource)
+            override fun <T> resource(resource: (() -> Resource<out Collection<T>>?)): ResourceBuilderOptions<T> = ResourceBuilderOptions(project, resource)
         }
     }
 
     interface ResourceBuilder {
         fun <T> resource(resource: Resource<out Collection<T>>): ResourceBuilderOptions<T> = resource { resource }
-        fun <T> resource(resource: () -> Resource<out Collection<T>>): ResourceBuilderOptions<T>
+        fun <T> resource(resource: (() -> Resource<out Collection<T>>?)): ResourceBuilderOptions<T>
     }
 
-    class ResourceBuilderOptions<T> internal constructor(private val project: Project, private val resource: () -> Resource<out Collection<T>>) {
+    class ResourceBuilderOptions<T> internal constructor(private val project: Project, private val resource: (() -> Resource<out Collection<T>>?)) {
         private var loadOnCreate = true
-        private var customRenderer: ((T, SimpleColoredComponent) -> SimpleColoredComponent)? = null
-        private var awsConnection: (() -> Pair<AwsRegion, ToolkitCredentialsProvider>)? = null
+        private var sortOnLoad = true
+        private var comboBoxModel: MutableCollectionComboBoxModel<T> = MutableCollectionComboBoxModel<T>()
+        private var customRendererFunction: ((T, ColoredListCellRenderer<T>) -> ColoredListCellRenderer<T>)? = null
+        private var customRenderer: ColoredListCellRenderer<T>? = null
+        private var awsConnection: LazyAwsConnectionEvaluator? = null
 
-        fun customRenderer(customRenderer: (T, SimpleColoredComponent) -> SimpleColoredComponent): ResourceBuilderOptions<T> = also {
+        fun comboBoxModel(comboBoxModel: MutableCollectionComboBoxModel<T>): ResourceBuilderOptions<T> = also {
+            it.comboBoxModel = comboBoxModel
+        }
+
+        fun customRenderer(customRenderer: (T, ColoredListCellRenderer<T>) -> ColoredListCellRenderer<T>): ResourceBuilderOptions<T> = also {
+            if (it.customRenderer != null) {
+                throw IllegalStateException("Please specify either of the customRenderer factory methods, but not both")
+            }
+            it.customRendererFunction = customRenderer
+        }
+
+        fun customRenderer(customRenderer: ColoredListCellRenderer<T>): ResourceBuilderOptions<T> = also {
+            if (it.customRendererFunction != null) {
+                throw IllegalStateException("Please specify either of the customRenderer factory methods, but not both")
+            }
             it.customRenderer = customRenderer
+        }
+
+        private fun resolveCustomRenderer(): ColoredListCellRenderer<T>? = customRenderer ?: customRendererFunction?.let { renderer ->
+            object : ColoredListCellRenderer<T>() {
+                override fun customizeCellRenderer(
+                    list: JList<out T>,
+                    value: T?,
+                    index: Int,
+                    selected: Boolean,
+                    hasFocus: Boolean
+                ) {
+                    value?.let {
+                        renderer.invoke(it, this)
+                    }
+                }
+            }
         }
 
         fun disableAutomaticLoading(): ResourceBuilderOptions<T> = also { it.loadOnCreate = false }
 
-        fun awsConnection(awsConnection: Pair<AwsRegion, ToolkitCredentialsProvider>): ResourceBuilderOptions<T> = awsConnection { awsConnection }
+        fun disableAutomaticSorting(): ResourceBuilderOptions<T> = also { it.sortOnLoad = false }
 
-        fun awsConnection(awsConnection: () -> Pair<AwsRegion, ToolkitCredentialsProvider>): ResourceBuilderOptions<T> = also {
+        fun awsConnection(awsConnection: AwsConnection): ResourceBuilderOptions<T> = awsConnection { awsConnection }
+
+        fun awsConnection(awsConnection: LazyAwsConnectionEvaluator): ResourceBuilderOptions<T> = also {
             it.awsConnection = awsConnection
         }
 
-        fun build() = ResourceSelector(project, resource, customRenderer, loadOnCreate, awsConnection ?: {
+        fun build() = ResourceSelector(project, resource, comboBoxModel, resolveCustomRenderer(), loadOnCreate, sortOnLoad, awsConnection ?: {
             val settings = ProjectAccountSettingsManager.getInstance(project)
             settings.activeRegion to settings.activeCredentialProvider
         })

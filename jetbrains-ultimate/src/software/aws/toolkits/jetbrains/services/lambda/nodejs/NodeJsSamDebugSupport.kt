@@ -18,27 +18,30 @@ import com.intellij.xdebugger.XDebugSession
 import com.jetbrains.debugger.wip.WipLocalVmConnection
 import com.jetbrains.nodeJs.NodeChromeDebugProcess
 import org.jetbrains.io.LocalFileFinder
-import software.aws.toolkits.jetbrains.services.lambda.execution.PathMapping
+import software.aws.toolkits.jetbrains.services.PathMapping
 import software.aws.toolkits.jetbrains.services.lambda.execution.local.SamDebugSupport
 import software.aws.toolkits.jetbrains.services.lambda.execution.local.SamRunningState
+import software.aws.toolkits.jetbrains.utils.CompatibilityUtils.createRemoteDebuggingFileFinder
 import java.net.InetSocketAddress
 
 class NodeJsSamDebugSupport : SamDebugSupport {
     override fun createDebugProcess(
         environment: ExecutionEnvironment,
         state: SamRunningState,
-        debugPort: Int
+        debugPorts: List<Int>
     ): XDebugProcessStarter? = object : XDebugProcessStarter() {
         override fun start(session: XDebugSession): XDebugProcess {
             val mappings = createBiMapMappings(state.builtLambda.mappings)
-            val fileFinder = RemoteDebuggingFileFinder(mappings, LocalFileSystemFileFinder(false))
+            val fileFinder =
+                createRemoteDebuggingFileFinder<RemoteDebuggingFileFinder>(mappings, LocalFileSystemFileFinder(false))
+
             val connection = WipLocalVmConnection()
             val executionResult = state.execute(environment.executor, environment.runner)
 
             val process = NodeChromeDebugProcess(session, fileFinder, connection, executionResult)
 
             val processHandler = executionResult.processHandler
-            val socketAddress = InetSocketAddress("localhost", debugPort)
+            val socketAddress = InetSocketAddress("localhost", debugPorts.first())
 
             if (processHandler == null || processHandler.isStartNotified) {
                 connection.open(socketAddress)

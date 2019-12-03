@@ -6,16 +6,21 @@ apply plugin: 'org.jetbrains.intellij'
 dependencies {
     compile project(":jetbrains-core")
     testCompile project(path: ":jetbrains-core", configuration: 'testArtifacts')
+    testCompile project(path: ":core", configuration: 'testArtifacts')
     integrationTestCompile project(path: ":jetbrains-core", configuration: 'testArtifacts')
 }
 
 intellij {
     def parentIntellijTask = project(':jetbrains-core').intellij
-    version ideVersion("IU")
+    version ideSdkVersion("IU")
     pluginName parentIntellijTask.pluginName
     updateSinceUntilBuild parentIntellijTask.updateSinceUntilBuild
     downloadSources = parentIntellijTask.downloadSources
     plugins = idePlugins("IU")
+}
+
+test {
+    systemProperty("log.dir", "${org.jetbrains.intellij.Utils.systemDir(intellij.sandboxDirectory, true)}/logs")
 }
 
 runIde {

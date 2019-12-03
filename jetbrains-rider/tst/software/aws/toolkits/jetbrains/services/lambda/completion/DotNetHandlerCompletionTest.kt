@@ -4,16 +4,14 @@
 package software.aws.toolkits.jetbrains.services.lambda.completion
 
 import com.intellij.openapi.util.IconLoader
-import com.jetbrains.rd.framework.impl.RpcTimeouts
 import com.jetbrains.rdclient.icons.toIdeaIcon
 import com.jetbrains.rider.model.IconModel
-import com.jetbrains.rider.model.lambdaPsiModel
-import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.test.annotations.TestEnvironment
 import com.jetbrains.rider.test.base.BaseTestWithSolution
 import org.assertj.core.api.Assertions.assertThat
 import org.testng.annotations.Test
 import software.amazon.awssdk.services.lambda.model.Runtime
+import software.aws.toolkits.jetbrains.services.lambda.assume20192Version
 
 class DotNetHandlerCompletionTest : BaseTestWithSolution() {
 
@@ -31,7 +29,7 @@ class DotNetHandlerCompletionTest : BaseTestWithSolution() {
     @Test
     @TestEnvironment(solution = "SamHelloWorldApp")
     fun testDetermineHandlers_SingleHandler() {
-        val handlers = project.solution.lambdaPsiModel.determineHandlers.sync(Unit, RpcTimeouts.default)
+        val handlers = DotNetHandlerCompletion().getHandlersFromBackend(project)
 
         assertThat(handlers.size).isEqualTo(1)
         assertThat(handlers.first().handler).isEqualTo("HelloWorld::HelloWorld.Function::FunctionHandler")
@@ -41,15 +39,19 @@ class DotNetHandlerCompletionTest : BaseTestWithSolution() {
     @Test
     @TestEnvironment(solution = "SamMultipleHandlersApp")
     fun testDetermineHandlers_MultipleHandlers() {
-        val handlers = project.solution.lambdaPsiModel.determineHandlers.sync(Unit, RpcTimeouts.default).sortedBy { it.handler }
+        assume20192Version()
+        val handlers = DotNetHandlerCompletion().getHandlersFromBackend(project).sortedBy { it.handler }
 
-        assertThat(handlers.size).isEqualTo(2)
+        assertThat(handlers.size).isEqualTo(3)
 
-        assertThat(handlers[0].handler).isEqualTo("HelloWorld::HelloWorld.Function2::FunctionHandler2")
+        assertThat(handlers[0].handler).isEqualTo("HelloWorld::HelloWorld.Function::FunctionHandler")
         assertIconPath(handlers[0].iconId, "/resharper/PsiSymbols/Method.svg")
 
-        assertThat(handlers[1].handler).isEqualTo("HelloWorld::HelloWorld.Function::FunctionHandler")
+        assertThat(handlers[1].handler).isEqualTo("HelloWorld::HelloWorld.FunctionWithObjectReturn::Handler")
         assertIconPath(handlers[1].iconId, "/resharper/PsiSymbols/Method.svg")
+
+        assertThat(handlers[2].handler).isEqualTo("HelloWorld::HelloWorld.FunctionWithOnlyLambdaContext::Handler")
+        assertIconPath(handlers[2].iconId, "/resharper/PsiSymbols/Method.svg")
     }
 
     @Suppress("SameParameterValue")

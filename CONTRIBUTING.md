@@ -24,8 +24,13 @@ reported the issue. Please try to include as much information as you can. Detail
 
 * [Java 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html)
 * [Git](https://git-scm.com/)
-* Dotnet Framework if on Windows / Mono if on Linux/Mac
-  * Note: You can skip this if you do not want to build Rider support by adding `-PskipRider` to any Gradle command 
+* Dotnet Framework (Windows) or Mono (Linux, macOS)
+  * macOS steps:
+    ```
+    brew install mono
+    brew cask install dotnet-sdk
+    ```
+  * Note: You can skip this if you do not want to build Rider support by adding `-PskipRider` to any Gradle command.
 
 #### Instructions
 
@@ -76,19 +81,33 @@ To test your changes locally, you can run the project from IntelliJ or gradle.
   The `runIde` task automatically downloads the correct version of IntelliJ
   Community Edition, builds and installs the plugin, and starts a _new_
   instance of IntelliJ with the built extension.
-- If you need to run the plugin in a specific JetBrains IDE (and you have it installed) you can do so by specifying the `ALTERNATIVE_IDE` environment variable. For example run:
+- To run **Rider or "Ultimate"**, specify the respective gradle target:
   ```
-  ALTERNATIVE_IDE=$(PATH_TO_ALTERNATIVE_IDE) ./gradlew runIde
+  ./gradlew jetbrains-ultimate:runIde
+  ./gradlew jetbrains-rider:runIde
   ```
-
-  (see `alternativeIdePath` in the Gradle IntelliJ Plugin [documentation](https://github.com/JetBrains/gradle-intellij-plugin) for more details)
-
-- If you wish to run the integration tests, they require valid AWS credentials to run. Take care, as it will respect any credentials currently defined in your environmental variables, and fallback to your default AWS profile otherwise.
-You will also need to have SAM CLI available in your path.
+  - These targets download the required IDE for testing.
+  - Do not specify `ALTERNATIVE_IDE`.
+- To run the plugin in a **specific JetBrains IDE** (and you have it installed), specify the `ALTERNATIVE_IDE` environment variable:
+  ```
+  ALTERNATIVE_IDE=/path/to/ide ./gradlew :runIde
+  ```
+  - This is needed to run PyCharm and WebStorm.
+  - Notice that the top-level `:runIde` target is always used with `ALTERNATIVE_IDE`.
+  - See also `alternativeIdePath` in the Gradle IntelliJ Plugin [documentation](https://github.com/JetBrains/gradle-intellij-plugin).
+- To run **integration tests**:
   ```
   ./gradlew integrationTest
   ```
-
+  - Requires valid AWS credentials (take care: it will respect any credentials currently defined in your environmental variables, and fallback to your default AWS profile otherwise).
+  - Requires `sam` CLI to be on your `$PATH`.
+- To run **GUI tests**:
+  ```
+  ./gradlew guiTest
+  ```
+  - To debug GUI tests,
+    1. Set `runIde.debugOptions.enabled=true` in the gradle file.
+    2. When prompted, attach your (IntelliJ) debugger to port 5005.
 
 ### Logging
 
