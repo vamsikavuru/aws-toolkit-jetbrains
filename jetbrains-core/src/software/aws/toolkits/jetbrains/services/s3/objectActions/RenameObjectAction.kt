@@ -56,7 +56,7 @@ class RenameObjectAction(private var treeTable: S3TreeTable, val bucket: S3Virtu
     }
 
     override fun isEnabled(): Boolean = !(treeTable.isEmpty || (treeTable.selectedRow < 0) ||
-            (treeTable.getValueAt(treeTable.selectedRow, 1) == "") || (treeTable.selectedRows.size > 1))
+        (treeTable.getValueAt(treeTable.selectedRow, 1) == "") || (treeTable.selectedRows.size > 1))
 
     fun renameObjectAction(response: String, file: VirtualFile, client: S3Client) {
         val bucketName = bucket.getVirtualBucketName()

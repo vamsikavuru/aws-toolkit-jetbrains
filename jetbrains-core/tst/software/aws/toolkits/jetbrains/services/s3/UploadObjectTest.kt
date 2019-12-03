@@ -3,10 +3,10 @@
 package software.aws.toolkits.jetbrains.services.s3
 
 import com.intellij.openapi.vfs.VirtualFile
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
 import org.assertj.core.api.Assertions
 import org.junit.Rule

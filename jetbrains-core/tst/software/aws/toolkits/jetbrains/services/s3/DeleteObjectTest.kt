@@ -51,9 +51,9 @@ class DeleteObjectTest {
 
         s3Client.stub {
             on { deleteObjects(deleteCaptor.capture()) } doReturn
-                    (DeleteObjectsResponse.builder()
-                        .requestCharged("yes")
-                        .deleted(listOf(DeletedObject.builder().deleteMarker(true).key("testKey").build()))).build()
+                (DeleteObjectsResponse.builder()
+                    .requestCharged("yes")
+                    .deleted(listOf(DeletedObject.builder().deleteMarker(true).key("testKey").build()))).build()
             Messages.setTestDialog(TestDialog.OK)
         }
         mockClientManagerRule.manager().register(S3Client::class, s3Client)

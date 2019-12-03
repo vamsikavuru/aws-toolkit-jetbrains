@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
+import com.intellij.ui.AnActionButton
 import software.aws.toolkits.core.telemetry.TelemetryNamespace
 import software.aws.toolkits.jetbrains.services.telemetry.TelemetryService
 import javax.swing.Icon
@@ -109,5 +110,4 @@ abstract class ActionButtonWrapper(text: String? = null, description: String? = 
     override fun updateButton(e: AnActionEvent) {}
 
     abstract fun doActionPerformed(e: AnActionEvent)
-}
 }

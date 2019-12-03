@@ -71,7 +71,7 @@ class DeleteObjectAction(
     }
 
     override fun isEnabled(): Boolean = (!(treeTable.isEmpty || (treeTable.selectedRow < 0) ||
-            (treeTable.getValueAt(treeTable.selectedRow, 1) == "")))
+        (treeTable.getValueAt(treeTable.selectedRow, 1) == "")))
 
     fun deleteObjectAction(client: S3Client, objectsToDelete: MutableList<ObjectIdentifier>) {
         val bucketName = bucket.getVirtualBucketName()

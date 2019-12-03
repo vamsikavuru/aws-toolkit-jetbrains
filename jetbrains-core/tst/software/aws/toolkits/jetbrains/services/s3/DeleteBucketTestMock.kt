@@ -3,11 +3,11 @@
 package software.aws.toolkits.jetbrains.services.s3
 
 import com.intellij.testFramework.ProjectRule
-import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
-import com.nhaarman.mockitokotlin2.doReturn
 import org.junit.Rule
 import org.junit.Test
 import software.amazon.awssdk.services.s3.S3Client
@@ -42,11 +42,11 @@ class DeleteBucketTestMock {
 
         s3Mock.stub {
             on { listObjectVersionsPaginator(any<ListObjectVersionsRequest>()) } doReturn
-                    ListObjectVersionsIterable(s3Mock, ListObjectVersionsRequest.builder().build())
+                ListObjectVersionsIterable(s3Mock, ListObjectVersionsRequest.builder().build())
         }
         s3Mock.stub {
             on { listObjectVersions(any<ListObjectVersionsRequest>()) } doReturn
-                    ListObjectVersionsResponse.builder().versions(emptyVersionList).isTruncated(false).build()
+                ListObjectVersionsResponse.builder().versions(emptyVersionList).isTruncated(false).build()
         }
         mockClientManagerRule.manager().register(S3Client::class, s3Mock)
 
@@ -67,11 +67,11 @@ class DeleteBucketTestMock {
 
         s3Mock.stub {
             on { listObjectVersionsPaginator(any<ListObjectVersionsRequest>()) } doReturn
-                    ListObjectVersionsIterable(s3Mock, ListObjectVersionsRequest.builder().build())
+                ListObjectVersionsIterable(s3Mock, ListObjectVersionsRequest.builder().build())
         }
         s3Mock.stub {
             on { listObjectVersions(any<ListObjectVersionsRequest>()) } doReturn
-                    ListObjectVersionsResponse.builder().versions(objectVersionList).isTruncated(false).build()
+                ListObjectVersionsResponse.builder().versions(objectVersionList).isTruncated(false).build()
         }
         mockClientManagerRule.manager().register(S3Client::class, s3Mock)
 
@@ -86,7 +86,7 @@ class DeleteBucketTestMock {
         val s3Mock = delegateMock<S3Client>()
         s3Mock.stub {
             on { listObjectVersionsPaginator(any<ListObjectVersionsRequest>()) } doReturn
-                    ListObjectVersionsIterable(s3Mock, ListObjectVersionsRequest.builder().build())
+                ListObjectVersionsIterable(s3Mock, ListObjectVersionsRequest.builder().build())
         }
         mockClientManagerRule.manager().register(S3Client::class, s3Mock)
         s3Mock.deleteBucketAndContents("")
