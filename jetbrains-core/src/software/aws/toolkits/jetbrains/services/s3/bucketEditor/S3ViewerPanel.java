@@ -1,5 +1,7 @@
 package software.aws.toolkits.jetbrains.services.s3.bucketEditor;
 
+import com.intellij.ide.dnd.DnDDragStartBean;
+import com.intellij.ide.dnd.DnDSupport;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -150,6 +152,17 @@ public class S3ViewerPanel {
                 treeTable.setDefaultRenderer(Object.class, tableRenderer);
                 treeTable.setTreeCellRenderer(treeRenderer);
                 treeTable.setCellSelectionEnabled(false);
+                DnDSupport.createBuilder(treeTable)
+                          .setBeanProvider(e -> new DnDDragStartBean(new Object()))
+                          .setTargetChecker(
+                              e -> {
+                                  Object info = e.getAttachedObject();
+                                  return true;
+                              }
+                          ).setDropActionHandler(e -> {
+                              System.out.println(e);
+                          })
+                          .install();
                 JBScrollPane scrollPane = new JBScrollPane(treeTable, JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                            JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
@@ -226,12 +239,45 @@ public class S3ViewerPanel {
     }
 
     private void clearSelectionOnWhiteSpace() {
+
+        /*
+        DropTarget dropTarget = new DropTarget();
+        mainPanel.setDropTarget(dropTarget);
+        try {
+            dropTarget.addDropTargetListener(new DropTargetAdapter() {
+                @Override
+                public void drop(DropTargetDropEvent dtde) {
+                    Transferable transferable = dtde.getTransferable();
+                    for (DataFlavor dataFlavor : dtde.getTransferable().getTransferDataFlavors()) {
+                        if (dataFlavor.isFlavorJavaFileListType()) {
+                            try {
+                                File[] filesArray = (File[]) (transferable.getTransferData(dataFlavor));
+                                System.out.println(filesArray);
+                            } catch (UnsupportedFlavorException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                    System.out.println(dtde);
+                }
+            });
+        } catch(Exception e ) {
+            System.out.println(e);
+        }*/
         mainPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (!treeTable.contains(e.getPoint())) {
                     treeTable.clearSelection();
                 }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
             }
         });
     }
