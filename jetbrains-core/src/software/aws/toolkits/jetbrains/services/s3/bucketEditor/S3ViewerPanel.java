@@ -46,8 +46,6 @@ import software.aws.toolkits.jetbrains.services.s3.objectActions.UploadObjectAct
 import software.aws.toolkits.jetbrains.ui.tree.AsyncTreeModel;
 import software.aws.toolkits.jetbrains.ui.tree.StructureTreeModel;
 
-import static software.aws.toolkits.resources.Localization.message;
-
 @SuppressWarnings("unchecked")
 public class S3ViewerPanel {
     private final int SCROLLPANE_SIZE = 11;
@@ -98,15 +96,12 @@ public class S3ViewerPanel {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             s3Node = new S3KeyNode(bucketVirtual);
 
-            ColumnInfo key = new S3KeyColumnInfo(virtualFile -> virtualFile.getFile().getKey());
+            ColumnInfo key = new S3TreeTableColumn(S3TreeTableColumn.ColumnType.NAME, virtualFile -> virtualFile.getFile().getKey());
+            ColumnInfo size = new S3TreeTableColumn(S3TreeTableColumn.ColumnType.SIZE, S3VirtualObject::formatSize);
+            ColumnInfo modified = new S3TreeTableColumn(S3TreeTableColumn.ColumnType.LAST_MODIFIED, virtualFile -> virtualFile.formatDate(virtualFile.getFile().getLastModified()));
 
-            ColumnInfo size = new S3ColumnInfo(message("s3.size"), S3VirtualObject::formatSize);
-
-            ColumnInfo modified = new S3ColumnInfo(message("s3.last_modified"),
-                                                   virtualFile -> virtualFile.formatDate(virtualFile.getFile().getLastModified()));
-
-            final ColumnInfo[] COLUMNS = new ColumnInfo[] {key, size, modified};
-            createTreeTable(COLUMNS);
+            final ColumnInfo[] columns = new ColumnInfo[] {key, size, modified};
+            createTreeTable(columns);
 
             DefaultActionGroup actionGroup = new DefaultActionGroup();
             S3TreeCellRenderer treeRenderer = new S3TreeCellRenderer();
