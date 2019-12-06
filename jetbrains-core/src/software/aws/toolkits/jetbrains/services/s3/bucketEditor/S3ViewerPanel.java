@@ -10,6 +10,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.intellij.util.ui.ColumnInfo;
 
@@ -26,6 +27,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.RowFilter;
@@ -61,10 +63,9 @@ public class S3ViewerPanel {
     private JButton searchButton;
     private JTextField searchTextField;
     private JLabel bucketName;
+    private JTable fileTable;
     private S3VirtualBucket bucketVirtual;
-    private S3TreeTable treeTable;
     private S3KeyNode s3Node;
-    private S3TreeTableModel model;
 
     public S3ViewerPanel(S3VirtualBucket bucketVirtual) {
         this.bucketVirtual = bucketVirtual;
@@ -96,9 +97,9 @@ public class S3ViewerPanel {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             s3Node = new S3KeyNode(bucketVirtual);
 
-            ColumnInfo key = new S3TreeTableColumn(S3TreeTableColumn.ColumnType.NAME, virtualFile -> virtualFile.getFile().getKey());
-            ColumnInfo size = new S3TreeTableColumn(S3TreeTableColumn.ColumnType.SIZE, S3VirtualObject::formatSize);
-            ColumnInfo modified = new S3TreeTableColumn(S3TreeTableColumn.ColumnType.LAST_MODIFIED, virtualFile -> virtualFile.formatDate(virtualFile.getFile().getLastModified()));
+            ColumnInfo key = new S3TableColumn(S3ColumnType.NAME, virtualFile -> virtualFile.getFile().getKey());
+            ColumnInfo size = new S3TableColumn(S3ColumnType.SIZE, S3VirtualObject::formatSize);
+            ColumnInfo modified = new S3TableColumn(S3ColumnType.LAST_MODIFIED, virtualFile -> virtualFile.formatDate(virtualFile.getFile().getLastModified()));
 
             final ColumnInfo[] columns = new ColumnInfo[] {key, size, modified};
             createTreeTable(columns);
@@ -184,6 +185,8 @@ public class S3ViewerPanel {
     }
 
     private void createTreeTable(ColumnInfo[] columns) {
+        JBTable x = new JBTable();
+
         Disposable myTreeModelDisposable = Disposer.newDisposable();
         SimpleTreeStructure treeStructure = new SimpleTreeStructure.Impl(s3Node);
         StructureTreeModel<SimpleTreeStructure> myTreeModel = new StructureTreeModel(treeStructure, myTreeModelDisposable);
