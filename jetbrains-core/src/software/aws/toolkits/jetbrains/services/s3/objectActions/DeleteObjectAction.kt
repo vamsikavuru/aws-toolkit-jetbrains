@@ -16,15 +16,14 @@ import software.aws.toolkits.jetbrains.components.telemetry.ActionButtonWrapper
 import software.aws.toolkits.jetbrains.services.s3.S3VirtualBucket
 import software.aws.toolkits.jetbrains.services.s3.S3VirtualDirectory
 import software.aws.toolkits.jetbrains.services.s3.bucketEditor.S3KeyNode
-import software.aws.toolkits.jetbrains.services.s3.bucketEditor.S3TreeTable
 import software.aws.toolkits.jetbrains.utils.notifyInfo
 import software.aws.toolkits.resources.message
 import javax.swing.JButton
 import javax.swing.JTextField
 import javax.swing.tree.DefaultMutableTreeNode
-
+/*
 class DeleteObjectAction(
-    private var treeTable: S3TreeTable,
+    private var treeTable: JTable,
     val bucket: S3VirtualBucket,
     private val searchButton: JButton,
     private val searchTextField: JTextField
@@ -83,3 +82,4 @@ class DeleteObjectAction(
         client.deleteObjects(deleteObjectsRequest)
     }
 }
+*/

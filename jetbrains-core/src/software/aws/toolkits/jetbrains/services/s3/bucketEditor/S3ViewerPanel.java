@@ -1,25 +1,11 @@
 package software.aws.toolkits.jetbrains.services.s3.bucketEditor;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.PopupHandler;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
-import com.intellij.ui.treeStructure.SimpleTreeStructure;
-import com.intellij.util.ui.ColumnInfo;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -30,23 +16,21 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.RowFilter;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
-import software.aws.toolkits.jetbrains.services.s3.S3RowSorter;
+import com.intellij.ui.table.JBTable;
 import software.aws.toolkits.jetbrains.services.s3.S3TreeCellRenderer;
 import software.aws.toolkits.jetbrains.services.s3.S3VirtualBucket;
-import software.aws.toolkits.jetbrains.services.s3.S3VirtualObject;
+
+/*
 import software.aws.toolkits.jetbrains.services.s3.objectActions.CopyPathAction;
 import software.aws.toolkits.jetbrains.services.s3.objectActions.DeleteObjectAction;
 import software.aws.toolkits.jetbrains.services.s3.objectActions.DownloadObjectAction;
 import software.aws.toolkits.jetbrains.services.s3.objectActions.RenameObjectAction;
-import software.aws.toolkits.jetbrains.services.s3.objectActions.UploadObjectAction;
-import software.aws.toolkits.jetbrains.ui.tree.AsyncTreeModel;
-import software.aws.toolkits.jetbrains.ui.tree.StructureTreeModel;
+import software.aws.toolkits.jetbrains.services.s3.objectActions.UploadObjectAction;*/
 
 @SuppressWarnings("unchecked")
 public class S3ViewerPanel {
@@ -63,7 +47,7 @@ public class S3ViewerPanel {
     private JButton searchButton;
     private JTextField searchTextField;
     private JLabel bucketName;
-    private JTable fileTable;
+    private JBTable fileTable;
     private S3VirtualBucket bucketVirtual;
     private S3KeyNode s3Node;
 
@@ -97,12 +81,15 @@ public class S3ViewerPanel {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             s3Node = new S3KeyNode(bucketVirtual);
 
-            ColumnInfo key = new S3TableColumn(S3ColumnType.NAME, virtualFile -> virtualFile.getFile().getKey());
-            ColumnInfo size = new S3TableColumn(S3ColumnType.SIZE, S3VirtualObject::formatSize);
-            ColumnInfo modified = new S3TableColumn(S3ColumnType.LAST_MODIFIED, virtualFile -> virtualFile.formatDate(virtualFile.getFile().getLastModified()));
+            //ColumnInfo key = new S3TableColumn(S3ColumnType.NAME, virtualFile -> virtualFile.getFile().getKey());
+            //ColumnInfo size = new S3TableColumn(S3ColumnType.SIZE, S3VirtualObject::formatSize);
+            // ColumnInfo modified = new S3TableColumn(S3ColumnType.LAST_MODIFIED, virtualFile -> virtualFile.formatDate(virtualFile.getFile().getLastModified()));
 
-            final ColumnInfo[] columns = new ColumnInfo[] {key, size, modified};
-            createTreeTable(columns);
+            // final ColumnInfo[] columns = new ColumnInfo[] {key, size, modified};
+            fileTable = new JBTable(new S3TableModel());
+            ((DefaultTableModel) fileTable.getModel()).addRow(new Object[] {"abc"});
+            ((DefaultTableModel) fileTable.getModel()).addRow(new Object[] {"abc"});
+            //createTreeTable(columns);
 
             DefaultActionGroup actionGroup = new DefaultActionGroup();
             S3TreeCellRenderer treeRenderer = new S3TreeCellRenderer();
@@ -131,7 +118,7 @@ public class S3ViewerPanel {
                             previous.setEnabled(false);
                         }
                     }
-                    treeTable.refresh();
+                    //fileTable.refresh();
                 }
             };
 
@@ -140,7 +127,7 @@ public class S3ViewerPanel {
                 previous.addActionListener(listener);
                 paginationPanel.add(previous);
                 paginationPanel.add(next);
-
+/*
                 treeTable = new S3TreeTable(model);
                 treeTable.setRootVisible(false);
                 treeTable.setDefaultRenderer(Object.class, tableRenderer);
@@ -156,6 +143,7 @@ public class S3ViewerPanel {
                 treeTable.setAutoCreateRowSorter(true);
                 searchAndSortTable();
 
+
                 actionGroup.add(new DownloadObjectAction(treeTable, bucketVirtual));
                 actionGroup.add(new UploadObjectAction(bucketVirtual, treeTable, searchButton, searchTextField));
                 actionGroup.add(new Separator());
@@ -167,8 +155,9 @@ public class S3ViewerPanel {
                 treeTable.getColumnModel().getColumn(1).setMaxWidth(120);
 
                 mainPanel.add(scrollPane, BorderLayout.CENTER);
+                 */
 
-                clearSelectionOnWhiteSpace();
+                //clearSelectionOnWhiteSpace();
             }, ModalityState.defaultModalityState());
         });
     }
@@ -183,7 +172,7 @@ public class S3ViewerPanel {
     public JTextField getName() {
         return name;
     }
-
+/*
     private void createTreeTable(ColumnInfo[] columns) {
         JBTable x = new JBTable();
 
@@ -197,6 +186,7 @@ public class S3ViewerPanel {
     /**
      * Search and sort TreeTable(top-level) rows based on text in TextField
      */
+/*
     private void searchAndSortTable() {
         TableRowSorter<TableModel> sorter = new S3RowSorter(treeTable.getModel());
         treeTable.setRowSorter(sorter);
@@ -229,5 +219,5 @@ public class S3ViewerPanel {
                 }
             }
         });
-    }
+    }*/
 }

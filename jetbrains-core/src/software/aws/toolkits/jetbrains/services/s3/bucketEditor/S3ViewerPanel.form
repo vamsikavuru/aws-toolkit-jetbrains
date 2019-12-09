@@ -47,7 +47,7 @@
               </component>
             </children>
           </grid>
-          <component id="4469e" class="javax.swing.JTable" binding="fileTable">
+          <component id="4469e" class="com.intellij.ui.table.JBTable" binding="fileTable">
             <constraints border-constraint="West"/>
             <properties>
               <showHorizontalLines value="true"/>
