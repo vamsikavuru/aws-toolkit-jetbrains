@@ -40,13 +40,17 @@ class S3TreeTable(
 
     private val dropTargetListener = object : DropTargetAdapter() {
         override fun drop(dropEvent: DropTargetDropEvent) {
-            val row = rowAtPoint(dropEvent.location).takeIf { it >= 0 } ?: return
-            val node = getNodeForRow(row) ?: return
+            val row = rowAtPoint(dropEvent.location)
+            val node = if (row >= 0) {
+                getNodeForRow(row)
+            } else {
+                (tree.model.root as? DefaultMutableTreeNode)?.userObject as? S3TreeNode
+            } ?: return
             val data = try {
                 dropEvent.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE)
                 dropEvent.transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<File>
             } catch (e: UnsupportedFlavorException) {
-                // When the drag and drop data is not what we expect (like when it is text) this is thrown and can be safey ignored
+                // When the drag and drop data is not what we expect (like when it is text) this is thrown and can be safely ignored
                 LOG.info(e) { "Unsupported flavor attempted to be dragged and dropped" }
                 return
             }
@@ -164,6 +168,8 @@ class S3TreeTable(
         }
 
     fun invalidateLevel(node: S3TreeNode) {
+        // special case for the top level node, remove its children since its parent is null
+        (node as? S3TreeDirectoryNode)?.removeAllChildren()
         node.parent?.removeAllChildren()
     }
 

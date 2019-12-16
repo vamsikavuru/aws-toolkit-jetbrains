@@ -12,6 +12,10 @@ class ProgressOutputStream(private val outputStream: OutputStream, val size: Lon
     private var closed: Boolean = false
     var progress: Long = 0
 
+    init {
+        indicator.isIndeterminate = false
+    }
+
     @Throws(IOException::class)
     override fun close() {
         super.close()

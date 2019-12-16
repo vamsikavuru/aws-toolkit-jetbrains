@@ -13,6 +13,10 @@ class ProgressInputStream(private val inputStream: InputStream, val size: Int, p
     var progress: Int = 0
     private var marked = 0
 
+    init {
+        indicator.isIndeterminate = false
+    }
+
     override fun read(): Int {
         val count = inputStream.read()
         if (count > 0) {
